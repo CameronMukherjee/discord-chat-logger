@@ -56,7 +56,6 @@ func main() {
 	if err != nil {
 		log.Fatalln(err.Error())
 	}
-	go mongoConnect()
 	printTable()
 	<-make(chan struct{})
 }
@@ -65,8 +64,11 @@ func messageHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 	/*messageHandler
 	This code is ran for every message sent.
 	*/
+
+	//For every message this code runs, move client to main.
 	insert := InsertMessage{currentDate(), currentTime(), m.Content}
-	go insertToMongo(mongoConnect(), insert)
+	mongoClient := mongoConnect()
+	go insertToMongo(mongoClient, insert)
 }
 
 func mongoConnect() *mongo.Client {
