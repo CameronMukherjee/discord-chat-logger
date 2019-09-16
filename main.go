@@ -10,7 +10,11 @@ package main
 
 import (
 	"context"
+	"crypto/aes"
+	"crypto/cipher"
+	"crypto/rand"
 	"fmt"
+	"io"
 	"log"
 	"time"
 
@@ -30,7 +34,7 @@ var BotID string
 type InsertMessage struct {
 	Date    string
 	Time    string
-	Message string
+	Message []byte
 }
 
 func main() {
@@ -64,11 +68,33 @@ func messageHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 	/*messageHandler
 	This code is ran for every message sent.
 	*/
-
-	//For every message this code runs, move client to main.
-	insert := InsertMessage{currentDate(), currentTime(), m.Content}
 	mongoClient := mongoConnect()
+	encMessage := encryptMessage(m.Content)
+	insert := InsertMessage{currentDate(), currentTime(), encMessage}
 	go insertToMongo(mongoClient, insert)
+}
+
+func encryptMessage(message string) []byte {
+	preEncryptedMessage := []byte(message)
+
+	c, err := aes.NewCipher(config.AESKey)
+	if err != nil {
+		color.Red.Println("(-) :: Could not generate new AES Cypher!")
+	}
+
+	gcm, err := cipher.NewGCM(c)
+	if err != nil {
+		color.Red.Println("(-) :: Could not generate new Galois Counter Mode operation!")
+	}
+
+	nonce := make([]byte, gcm.NonceSize())
+	if _, err = io.ReadFull(rand.Reader, nonce); err != nil {
+		color.Red.Println("(-) :: Could not secure memory!")
+	}
+
+	fmt.Println(gcm.Seal(nonce, nonce, preEncryptedMessage, nil))
+	postEncryptedMessage := gcm.Seal(nonce, nonce, preEncryptedMessage, nil)
+	return postEncryptedMessage
 }
 
 func mongoConnect() *mongo.Client {
@@ -104,7 +130,7 @@ func insertToMongo(client *mongo.Client, message InsertMessage) {
 	if err != nil {
 		color.Red.Println("(-) :: Failed to write message to database!")
 	} else {
-		color.Green.Println("(+) :: Successfully added new log!")
+		color.Green.Println("(+) :: Successfully added new entry!")
 	}
 	return
 }
