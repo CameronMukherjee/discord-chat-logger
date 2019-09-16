@@ -46,6 +46,7 @@ func main() {
 		color.Red.Println("(-) :: Connection to Discord API could not be established!")
 	}
 	color.Green.Println("(+) :: Connection to Discord API Successful!")
+	color.Magenta.Printf("---------------------------------------------- \n")
 
 	//TODO: Figure out what discord.User does and change the error
 	user, err := discord.User("@me")
@@ -61,7 +62,6 @@ func main() {
 	if err != nil {
 		log.Fatalln(err.Error())
 	}
-	printTable()
 	<-make(chan struct{})
 }
 
@@ -133,11 +133,6 @@ func insertToMongo(message InsertMessage) {
 		color.Green.Println("(+) :: Successfully added new entry!")
 	}
 	return
-}
-
-func printTable() {
-	//TODO: Update whole table
-	color.Magenta.Printf("---------------------------------------------- \n")
 }
 
 func currentDate() string {
