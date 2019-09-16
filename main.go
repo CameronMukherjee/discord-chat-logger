@@ -13,7 +13,6 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
-	"fmt"
 	"io"
 	"log"
 	"time"
@@ -36,6 +35,8 @@ type InsertMessage struct {
 	Time    string
 	Message []byte
 }
+
+var client = mongoConnect()
 
 func main() {
 	color.Yellow.Println("(/) :: Attempting to connect to Discord API...")
@@ -68,15 +69,14 @@ func messageHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 	/*messageHandler
 	This code is ran for every message sent.
 	*/
-	mongoClient := mongoConnect()
+	// mongoClient := mongoConnect()
 	encMessage := encryptMessage(m.Content)
 	insert := InsertMessage{currentDate(), currentTime(), encMessage}
-	go insertToMongo(mongoClient, insert)
+	go insertToMongo(insert)
 }
 
 func encryptMessage(message string) []byte {
 	preEncryptedMessage := []byte(message)
-
 	c, err := aes.NewCipher(config.AESKey)
 	if err != nil {
 		color.Red.Println("(-) :: Could not generate new AES Cypher!")
@@ -92,7 +92,7 @@ func encryptMessage(message string) []byte {
 		color.Red.Println("(-) :: Could not secure memory!")
 	}
 
-	fmt.Println(gcm.Seal(nonce, nonce, preEncryptedMessage, nil))
+	// fmt.Println(gcm.Seal(nonce, nonce, preEncryptedMessage, nil))
 	postEncryptedMessage := gcm.Seal(nonce, nonce, preEncryptedMessage, nil)
 	return postEncryptedMessage
 }
@@ -120,7 +120,7 @@ func mongoConnect() *mongo.Client {
 	return client
 }
 
-func insertToMongo(client *mongo.Client, message InsertMessage) {
+func insertToMongo(message InsertMessage) {
 	/*insertToMongo
 	Inserts message from 'messageHandler' to MongoDB
 	Utilising the mongoConnect function.
@@ -137,17 +137,7 @@ func insertToMongo(client *mongo.Client, message InsertMessage) {
 
 func printTable() {
 	//TODO: Update whole table
-	color.Green.Println("(+) :: Discord Token Verified!")
-	time.Sleep(time.Second)
-	color.Blue.Println("Logging has started.")
-	time.Sleep(time.Second)
-	color.Cyan.Printf("-       STATUS        ")
-	fmt.Print("-")
-	color.Yellow.Printf("       DATETIME      ")
-	fmt.Print("-")
-	color.Blue.Printf(" USERNAME ")
-	fmt.Print("-")
-	color.Magenta.Printf(" MESSAGE\n")
+	color.Magenta.Printf("---------------------------------------------- \n")
 }
 
 func currentDate() string {
