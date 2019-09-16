@@ -125,11 +125,19 @@ func printTable() {
 }
 
 func currentDate() string {
+	/*currentDate
+	Returns date in format "00-00-0000" (British Format)
+	This return is a string.
+	*/
 	dt := time.Now()
 	return dt.Format("02-01-2006")
 }
 
 func currentTime() string {
+	/*currentTime
+	Returns time in format "00:00:00".
+	This return is a string.
+	*/
 	dt := time.Now()
 	return dt.Format("15:04:05")
 }
