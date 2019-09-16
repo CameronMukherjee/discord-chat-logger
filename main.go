@@ -105,7 +105,6 @@ func insertToMongo(client *mongo.Client, message InsertMessage) {
 		color.Green.Println("(+) :: Successfully added new log!")
 	}
 	return
-
 }
 
 func printTable() {
