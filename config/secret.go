@@ -8,5 +8,11 @@ const DiscordToken string = ""
 //MongoURL - MongoDB URL location for the database
 const MongoURL string = ""
 
+//Database - Mongo Database
+const Database string = ""
+
+//Collection - Mongo Collection
+const Collection string = ""
+
 //AESKey - AES Encryption / Decryption Key (Needs to be 32 characters long)
 // var AESKey = []byte("")

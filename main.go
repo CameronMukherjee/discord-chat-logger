@@ -105,7 +105,7 @@ func insertToMongo(message InsertMessage) {
 	Inserts message from 'messageHandler' to MongoDB
 	Utilising the mongoConnect function.
 	*/
-	collection := client.Database("didaticDBv2").Collection("messages")
+	collection := client.Database(config.Database).Collection(config.Collection)
 	_, err := collection.InsertOne(context.TODO(), message)
 	if err != nil {
 		color.Red.Println("(-) :: Failed to write message to database!")
