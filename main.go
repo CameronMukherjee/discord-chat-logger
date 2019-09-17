@@ -10,10 +10,6 @@ package main
 
 import (
 	"context"
-	"crypto/aes"
-	"crypto/cipher"
-	"crypto/rand"
-	"io"
 	"log"
 	"time"
 
@@ -31,9 +27,10 @@ var BotID string
 
 //InsertMessage - The insert struct for MongoDB
 type InsertMessage struct {
-	Date    string
-	Time    string
-	Message []byte
+	Date string
+	Time string
+	User string
+	Mess string
 }
 
 var client = mongoConnect()
@@ -69,32 +66,13 @@ func messageHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 	/*messageHandler
 	This code is ran for every message sent.
 	*/
-	// mongoClient := mongoConnect()
-	encMessage := encryptMessage(m.Content)
-	insert := InsertMessage{currentDate(), currentTime(), encMessage}
+
+	if m.Content == "" {
+		return
+	}
+	username := m.Author.String()
+	insert := InsertMessage{currentDate(), currentTime(), username, m.Content}
 	go insertToMongo(insert)
-}
-
-func encryptMessage(message string) []byte {
-	preEncryptedMessage := []byte(message)
-	c, err := aes.NewCipher(config.AESKey)
-	if err != nil {
-		color.Red.Println("(-) :: Could not generate new AES Cypher!")
-	}
-
-	gcm, err := cipher.NewGCM(c)
-	if err != nil {
-		color.Red.Println("(-) :: Could not generate new Galois Counter Mode operation!")
-	}
-
-	nonce := make([]byte, gcm.NonceSize())
-	if _, err = io.ReadFull(rand.Reader, nonce); err != nil {
-		color.Red.Println("(-) :: Could not secure memory!")
-	}
-
-	// fmt.Println(gcm.Seal(nonce, nonce, preEncryptedMessage, nil))
-	postEncryptedMessage := gcm.Seal(nonce, nonce, preEncryptedMessage, nil)
-	return postEncryptedMessage
 }
 
 func mongoConnect() *mongo.Client {
@@ -152,3 +130,25 @@ func currentTime() string {
 	dt := time.Now()
 	return dt.Format("15:04:05")
 }
+
+// func encryptMessage(message string) []byte {
+// 	preEncryptedMessage := []byte(message)
+// 	c, err := aes.NewCipher(config.AESKey)
+// 	if err != nil {
+// 		color.Red.Println("(-) :: Could not generate new AES Cypher!")
+// 	}
+
+// 	gcm, err := cipher.NewGCM(c)
+// 	if err != nil {
+// 		color.Red.Println("(-) :: Could not generate new Galois Counter Mode operation!")
+// 	}
+
+// 	nonce := make([]byte, gcm.NonceSize())
+// 	if _, err = io.ReadFull(rand.Reader, nonce); err != nil {
+// 		color.Red.Println("(-) :: Could not secure memory!")
+// 	}
+
+// 	// fmt.Println(gcm.Seal(nonce, nonce, preEncryptedMessage, nil))
+// 	postEncryptedMessage := gcm.Seal(nonce, nonce, preEncryptedMessage, nil)
+// 	return postEncryptedMessage
+// }
