@@ -1,2 +1,2 @@
 # Discord Chat Logger 
-## test
+Please ensure all users within your server consent to having there messages logged.
