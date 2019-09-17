@@ -27,10 +27,10 @@ var BotID string
 
 //InsertMessage - The insert struct for MongoDB
 type InsertMessage struct {
-	Date string
-	Time string
-	User string
-	Mess string
+	Date    string
+	Time    string
+	User    string
+	Message string
 }
 
 var client = mongoConnect()
