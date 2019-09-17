@@ -27,10 +27,11 @@ var BotID string
 
 //InsertMessage - The insert struct for MongoDB
 type InsertMessage struct {
-	Date    string
-	Time    string
-	User    string
-	Message string
+	Date     string
+	Time     string
+	User     string
+	Chatroom string
+	Message  string
 }
 
 var client = mongoConnect()
@@ -71,7 +72,8 @@ func messageHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 	username := m.Author.String()
-	insert := InsertMessage{currentDate(), currentTime(), username, m.Content}
+	chatroom := "https://discordapp.com/channels/" + m.GuildID + "/" + m.ChannelID
+	insert := InsertMessage{currentDate(), currentTime(), username, chatroom, m.Content}
 	go insertToMongo(insert)
 }
 
