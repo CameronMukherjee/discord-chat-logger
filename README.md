@@ -1,1 +1,1 @@
-![documentation found under 'resources/documentation'](resources/discordloggerdoc.jpg)
+![documentation found under 'resources/documentation'](resources/readme.jpg)
