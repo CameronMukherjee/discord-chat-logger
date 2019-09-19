@@ -9,11 +9,8 @@ If off - ignore all message (no not log)
 package main
 
 import (
-	"bufio"
 	"context"
-	"fmt"
 	"log"
-	"os"
 	"time"
 
 	"go.mongodb.org/mongo-driver/mongo"
@@ -40,7 +37,6 @@ type InsertMessage struct {
 var client = mongoConnect()
 
 func main() {
-	readConfig()
 	color.Yellow.Println("(/) :: Attempting to connect to Discord API...")
 	discord, err := discordgo.New("Bot " + config.DiscordToken)
 	if err != nil {
@@ -117,34 +113,6 @@ func insertToMongo(message InsertMessage) {
 		color.Green.Println("(+) :: Successfully added new entry!")
 	}
 	return
-}
-
-func readConfig() {
-	/*readConfig
-	Reads config found in ./config/config.txt
-	Needs testing
-	*/
-	file, err := os.Open("./config/config.txt")
-	if err != nil {
-		color.Red.Println("(-) :: Could not read config file!")
-		os.Exit(1)
-	}
-	defer file.Close()
-	scanner := bufio.NewScanner(file)
-
-	j := 0
-	for scanner.Scan() {
-		scanner.Text()
-		j++
-	}
-
-	for i := 0; i < j; i++ {
-		fmt.Println("Debug Loop Here")
-		fmt.Println(scanner.Text())
-	}
-	if err := scanner.Err(); err != nil {
-		log.Fatalln(err)
-	}
 }
 
 func currentDate() string {
