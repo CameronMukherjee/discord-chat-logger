@@ -132,25 +132,3 @@ func currentTime() string {
 	dt := time.Now()
 	return dt.Format("15:04:05")
 }
-
-// func encryptMessage(message string) []byte {
-// 	preEncryptedMessage := []byte(message)
-// 	c, err := aes.NewCipher(config.AESKey)
-// 	if err != nil {
-// 		color.Red.Println("(-) :: Could not generate new AES Cypher!")
-// 	}
-
-// 	gcm, err := cipher.NewGCM(c)
-// 	if err != nil {
-// 		color.Red.Println("(-) :: Could not generate new Galois Counter Mode operation!")
-// 	}
-
-// 	nonce := make([]byte, gcm.NonceSize())
-// 	if _, err = io.ReadFull(rand.Reader, nonce); err != nil {
-// 		color.Red.Println("(-) :: Could not secure memory!")
-// 	}
-
-// 	// fmt.Println(gcm.Seal(nonce, nonce, preEncryptedMessage, nil))
-// 	postEncryptedMessage := gcm.Seal(nonce, nonce, preEncryptedMessage, nil)
-// 	return postEncryptedMessage
-// }
