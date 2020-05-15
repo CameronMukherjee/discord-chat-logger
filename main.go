@@ -1,32 +1,18 @@
-/*Didatic Discord Bot v2
-Allow logging to be toggled on and off per user.
-
-Collection of all userids - with option of logging as on or off.
-If on - log
-If off - ignore all message (no not log)
-*/
-
 package main
 
 import (
-	"context"
+	"database/sql"
+	"fmt"
+	"github.com/bwmarrin/discordgo"
+	"github.com/joho/godotenv"
 	"log"
+	"os"
 	"time"
 
-	"go.mongodb.org/mongo-driver/mongo"
-
-	"github.com/bwmarrin/discordgo"
-	"github.com/gookit/color"
-	"go.mongodb.org/mongo-driver/mongo/options"
-
-	"./config"
+	_ "github.com/mattn/go-sqlite3"
 )
 
-//BotID - type: string
-var BotID string
-
-//InsertMessage - The insert struct for MongoDB
-type InsertMessage struct {
+type Message struct {
 	Date     string
 	Time     string
 	User     string
@@ -34,101 +20,115 @@ type InsertMessage struct {
 	Message  string
 }
 
-var client = mongoConnect()
-
 func main() {
-	color.Yellow.Println("(/) :: Attempting to connect to Discord API...")
-	discord, err := discordgo.New("Bot " + config.DiscordToken)
-	if err != nil {
-		log.Fatalln(err.Error())
-		color.Red.Println("(-) :: Connection to Discord API could not be established!")
-	}
-	color.Green.Println("(+) :: Connection to Discord API Successful!")
-	color.Magenta.Printf("---------------------------------------------- \n")
 
-	//TODO: Figure out what discord.User does and change the error
-	user, err := discord.User("@me")
+	fmt.Println("Attempting to connect to Discord API.")
+
+	discord, err := discordgo.New("Bot " + getEnvVar("DiscordToken"))
 	if err != nil {
-		log.Fatalln(err.Error())
-		color.Red.Println("(-) :: Could not set BotID as UserID")
+		log.Fatal(err)
+	} else {
+		fmt.Println("Connection to Discord API established.")
 	}
 
-	BotID = user.ID
+	dbSetup()
+
+	_, err = discord.User("@me")
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	discord.AddHandler(messageHandler)
 	err = discord.Open()
 	if err != nil {
-		log.Fatalln(err.Error())
+		log.Fatal(err)
 	}
+
 	<-make(chan struct{})
+
 }
 
-func messageHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
-	/*messageHandler
-	This code is ran for every message sent.
-	*/
+func messageHandler(m *discordgo.MessageCreate) {
 
 	if m.Content == "" {
 		return
 	}
+
 	username := m.Author.String()
 	chatroom := "https://discordapp.com/channels/" + m.GuildID + "/" + m.ChannelID
-	insert := InsertMessage{currentDate(), currentTime(), username, chatroom, m.Content}
-	go insertToMongo(insert)
+
+	insert := Message{currentDate(), currentTime(), username, chatroom, m.Content}
+	go dbInsert(insert)
+
 }
 
-func mongoConnect() *mongo.Client {
-	/*mongoConnect
-	Establishing a connection with MongoDB to save logs.
-	*/
-	clientOptions := options.Client().ApplyURI(config.MongoURL)
-	color.Yellow.Println("(/) :: Attempting to connect to MongoDB...")
+func dbInsert(message Message) {
 
-	//TODO: What is context TODO?
-	client, err := mongo.Connect(context.TODO(), clientOptions)
+	db, err := sql.Open("sqlite3", getEnvVar("DB_NAME"))
 	if err != nil {
-		log.Fatalln(err.Error())
-		color.Red.Println("(-) :: Connection to MongoDB could not be established!")
+		log.Fatal(err)
 	}
-	color.Green.Println("(+) :: Connection to MongoDB Successful!")
 
-	err = client.Ping(context.TODO(), nil)
+	query, err := db.Prepare("INSERT INTO Messages(username, chatroom, message, date, time) " +
+		"VALUES (?, ?, ?, ?, ?)")
 	if err != nil {
-		log.Fatalln(err.Error())
-		color.Red.Println("(-) :: Connection to MongoDB could not be established!")
+		log.Fatal(err)
 	}
-	return client
-}
 
-func insertToMongo(message InsertMessage) {
-	/*insertToMongo
-	Inserts message from 'messageHandler' to MongoDB
-	Utilising the mongoConnect function.
-	*/
-	collection := client.Database(config.Database).Collection(config.Collection)
-	_, err := collection.InsertOne(context.TODO(), message)
+	_, err = query.Exec(message.User, message.Chatroom, message.Message, message.Date, message.Time)
 	if err != nil {
-		color.Red.Println("(-) :: Failed to write message to database!")
+		log.Fatal(err)
 	} else {
-		color.Green.Println("(+) :: Successfully added new entry!")
+		fmt.Println("Message Added: ", message)
 	}
-	return
+}
+
+//noinspection GoNilness
+func dbSetup() {
+
+	db, err := sql.Open("sqlite3", "database.db")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	setup, err := db.Prepare("CREATE TABLE IF NOT EXISTS Messages(id INTEGER PRIMARY KEY AUTOINCREMENT," +
+		" username varchar(255), chatroom varchar(255), message varchar(255), date varchar(255), time varchar(255))")
+
+	_, err = setup.Exec()
+	if err != nil {
+		log.Fatal(err)
+	} else {
+		fmt.Println("Database Initialization Complete.")
+	}
+
+	err = db.Close()
+	if err != nil {
+		log.Fatal(err)
+	}
+
 }
 
 func currentDate() string {
-	/*currentDate
-	Returns date in format "00-00-0000" (British Format)
-	This return is a string.
-	*/
+
 	dt := time.Now()
 	return dt.Format("02-01-2006")
+
 }
 
 func currentTime() string {
-	/*currentTime
-	Returns time in format "00:00:00".
-	This return is a string.
-	*/
+
 	dt := time.Now()
 	return dt.Format("15:04:05")
+
+}
+
+func getEnvVar(key string) string {
+
+	err := godotenv.Load(".env")
+	if err != nil {
+		log.Fatalf("Error loading .env file")
+	}
+
+	return os.Getenv(key)
+
 }

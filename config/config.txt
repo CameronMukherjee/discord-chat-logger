@@ -1,4 +1,0 @@
-discordToken
-mongoDbURL
-Database
-Collection
