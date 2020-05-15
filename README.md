@@ -4,7 +4,7 @@ learning projects.
 <br>
 ## Warning (Important Please Read):
 It is your responsibility to notify all members of your server that message logging is enabled;
- Presence itself does not announce this. <br>
+ Presence itself does not announce this.
 It is against Discord TOS to log user messages without consent.
 <br>
 ## Setup
