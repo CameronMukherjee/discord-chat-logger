@@ -48,7 +48,7 @@ func main() {
 
 }
 
-func messageHandler(m *discordgo.MessageCreate) {
+func messageHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 	if m.Content == "" {
 		return
