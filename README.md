@@ -1,5 +1,5 @@
-# Discord Chat Logger
-Log all chats within your server using this bot. Great for business orientated server / anti-trolling and machine 
+# Presence - A Discord Chat Logger
+Log all chats within your server using this bot. Great for business orientated servers and machine 
 learning projects.
 <br>
 ## Setup
