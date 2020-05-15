@@ -2,6 +2,11 @@
 Log all chats within your server using this bot. Great for business orientated servers and machine 
 learning projects.
 <br>
+## Warning (Important Please Read):
+It is your responsibility to notify all members of your server that message logging is enabled;
+ Presence itself does not announce this. <br>
+It is against Discord TOS to log user messages without consent.
+<br>
 ## Setup
 1. Download project (via release, git or zip file).
 2. Extract files to location you would like to store the bot and database.
